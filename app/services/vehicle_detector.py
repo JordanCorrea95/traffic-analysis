@@ -130,8 +130,11 @@ class VehicleDetector:
                     class_name=detection.class_name
                 )
 
-            # Actualizar posición del track
-            self.tracks[detection.track_id].update_position(detection.centroid)
+            # Actualizar posición del track con la clase actual para estabilización
+            self.tracks[detection.track_id].update_position(
+                detection.centroid, 
+                class_name=detection.class_name
+            )
 
         # Incrementar contador de frames perdidos para tracks no detectados
         for track_id in list(self.tracks.keys()):
@@ -170,19 +173,24 @@ class VehicleDetector:
             # Determinar dirección del cruce
             direction = None
 
+            # Factor que ayuda a contar vehículos que se encuentran en la línea de referencia
+            epsilon = 0.5
+
             # Sur -> Norte (de abajo hacia arriba, Y disminuye)
-            # Verificar que cruzó la línea: prev estaba abajo (y > y_line) y ahora está arriba (y < y_line)
-            if prev_pos[1] > y_line and current_pos[1] < y_line:
+            if prev_pos[1] > y_line + epsilon > current_pos[1]:
                 direction = "Sur->Norte"
 
             # Norte -> Sur (de arriba hacia abajo, Y aumenta)
-            # Verificar que cruzó la línea: prev estaba arriba (y < y_line) y ahora está abajo (y > y_line)
-            elif prev_pos[1] < y_line and current_pos[1] > y_line:
+            elif prev_pos[1] < y_line + epsilon < current_pos[1]:
                 direction = "Norte->Sur"
 
             if direction:
                 track.counted = True
                 track.lane = i
+                
+                # Obtener la clase predominante del historial con pesos lineales
+                track.class_name = track.get_stable_class()
+                
                 self._update_stats(track, direction)
                 logger.info(f"Vehículo contado - ID: {track.track_id}, Clase: {track.class_name}, Dirección: {direction}, Posición previa Y: {prev_pos[1]}, Posición actual Y: {current_pos[1]}, Línea Y: {y_line}")
                 return True

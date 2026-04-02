@@ -13,9 +13,9 @@ UPLOAD_DIR = STORAGE_DIR / "uploads"
 PROCESSED_DIR = STORAGE_DIR / "processed"
 
 # Modelo YOLO
-YOLO_MODEL_PATH = MODELS_DIR / "yolo26l-seg.pt"
-YOLO_CONFIDENCE_THRESHOLD = 0.25
-YOLO_IOU_THRESHOLD = 0.25
+YOLO_MODEL_PATH = MODELS_DIR / "yolo26m-seg.pt"
+YOLO_CONFIDENCE_THRESHOLD = 0.5
+YOLO_IOU_THRESHOLD = 0.5
 
 # Clases de vehículos (COCO dataset)
 VEHICLE_CLASSES = {
@@ -35,8 +35,8 @@ TRACKING_MAX_AGE = 90  # Frames máximos sin detección antes de eliminar track 
 
 # Colores para visualización (BGR)
 COLORS = {
-    "car": (0, 255, 0),         # Verde
-    "motorcycle": (255, 0, 0),  # Azul
+    "car": (255, 0, 0),         # Verde
+    "motorcycle": (0, 255, 0),  # Azul
     "bus": (0, 165, 255),       # Naranja
     "truck": (0, 0, 255)        # Rojo
 }

@@ -169,21 +169,21 @@ class VideoProcessor:
                 cv2.addWeighted(mask_overlay, 0.3, annotated, 0.7, 0, annotated)
 
                 # Dibujar contorno de la máscara
-                cv2.polylines(annotated, [points], True, color, 2)
+                cv2.polylines(annotated, [points], True, color, thickness=1)
 
             # Dibujar bounding box
             x1, y1, x2, y2 = detection.bbox
-            cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)
+            cv2.rectangle(annotated, (x1, y1), (x2, y2), color, thickness=1)
 
             # Preparar etiqueta
             label = f"{detection.class_name.upper()} {detection.confidence:.2f}"
 
-            # Dibujar etiqueta con fondo
+            # Dibujar etiqueta de clase con fondo
             draw_text_with_background(
                 annotated,
                 label,
                 (x1, y1 - 10),
-                font_scale=0.5,
+                font_scale=0.4,
                 thickness=1,
                 text_color=(255, 255, 255),
                 bg_color=color,
@@ -195,8 +195,8 @@ class VideoProcessor:
             draw_text_with_background(
                 annotated,
                 track_label,
-                (x1, y2 + 20),
-                font_scale=0.4,
+                (x1, y2 + 15),
+                font_scale=0.3,
                 thickness=1,
                 text_color=(255, 255, 255),
                 bg_color=color,

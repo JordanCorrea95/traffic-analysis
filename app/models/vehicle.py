@@ -38,15 +38,23 @@ class VehicleTrack:
     track_id: int
     class_name: str
     positions: List[Tuple[int, int]] = field(default_factory=list)
+    class_history: List[str] = field(default_factory=list)
     direction: Direction = Direction.UNKNOWN
     lane: Optional[int] = None
     counted: bool = False
     frames_since_last_detection: int = 0
 
-    def update_position(self, position: Tuple[int, int]):
-        """Actualiza la posición del vehículo."""
+    def update_position(self, position: Tuple[int, int], class_name: Optional[str] = None):
+        """Actualiza la posición y el historial de clases del vehículo."""
         self.positions.append(position)
         self.frames_since_last_detection = 0
+
+        # Actualizar historial de clases si se proporciona
+        if class_name:
+            self.class_history.append(class_name)
+            # Mantener ventana de estabilidad (últimas N detecciones)
+            if len(self.class_history) > 30:
+                self.class_history = self.class_history[-30:]
 
         # Mantener solo las últimas N posiciones para calcular dirección
         if len(self.positions) > 30:
@@ -63,6 +71,7 @@ class VehicleTrack:
         current_pos = self.positions[-1]
         past_pos = self.positions[-5]
 
+        # Cambio vertical
         dy = current_pos[1] - past_pos[1]
 
         # Determinar dirección predominante (sólo consideraremos eje y)
@@ -77,6 +86,31 @@ class VehicleTrack:
     def increment_missed_frames(self):
         """Incrementa el contador de frames sin detección."""
         self.frames_since_last_detection += 1
+
+    def get_stable_class(self) -> str:
+        """
+        Calcula la clase más probable basándose en el historial de detecciones
+        utilizando una ponderación lineal (más peso a los frames más recientes).
+        
+        Returns:
+            str: Clase con mayor peso acumulado.
+        """
+        if not self.class_history:
+            return self.class_name
+
+        # Mapeo para acumular pesos por clase
+        class_weights = {}
+        
+        # Longitud del historial
+        n = len(self.class_history)
+        
+        # Asignar pesos lineales: i=0 (más antiguo) -> peso 1, i=n-1 (más reciente) -> peso n
+        for i, cls in enumerate(self.class_history):
+            weight = i + 1
+            class_weights[cls] = class_weights.get(cls, 0) + weight
+            
+        # Retornar la clase con el peso máximo
+        return max(class_weights, key=class_weights.get)
 
 
 @dataclass
